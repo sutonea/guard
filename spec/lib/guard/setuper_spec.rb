@@ -240,22 +240,12 @@ describe Guard::Setuper do
       end
 
       context 'when receiving SIGINT' do
-        context 'without an interactor' do
-          before { expect(Guard).to receive(:interactor).and_return nil }
-
-          it 'stops Guard' do
-            expect(Guard).to receive(:stop)
-            Process.kill :INT, Process.pid
-            sleep 1
-          end
-        end
-
         context 'with an interactor' do
           let(:interactor) { double('interactor', thread: double('thread')) }
           before { allow(Guard).to receive(:interactor).and_return(interactor) }
 
           it 'delegates to the Pry thread' do
-            expect(Guard.interactor.thread).to receive(:raise).with Interrupt
+            expect(Guard.interactor).to receive(:handle_interrupt)
             Process.kill :INT, Process.pid
             sleep 1
           end

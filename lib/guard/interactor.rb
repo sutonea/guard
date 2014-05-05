@@ -99,56 +99,86 @@ module Guard
     # Pry and creates some custom commands and aliases
     # for Guard.
     #
-    def initialize
+    def initialize(no_interaction=false)
+      @mutex = Mutex.new
+      @no_interaction = no_interaction
       return if ENV['GUARD_ENV'] == 'test'
 
-      Pry.config.should_load_rc       = false
-      Pry.config.should_load_local_rc = false
-      Pry.config.history.file         = File.expand_path(self.class.options[:history_file] || HISTORY_FILE)
+      unless @no_interaction
+        Pry.config.should_load_rc       = false
+        Pry.config.should_load_local_rc = false
+        Pry.config.history.file         = File.expand_path(self.class.options[:history_file] || HISTORY_FILE)
 
-      @stty_exists = nil
-      _add_hooks
+        @stty_exists = nil
+        _add_hooks
 
-      _replace_reset_command
-      _create_run_all_command
-      _create_command_aliases
-      _create_guard_commands
-      _create_group_commands
+        _replace_reset_command
+        _create_run_all_command
+        _create_command_aliases
+        _create_guard_commands
+        _create_group_commands
 
-      _configure_prompt
+        _configure_prompt
+      end
     end
 
-    # Start the line reader in its own thread and
-    # stop Guard on Ctrl-D.
-    #
-    def start
+    # Run in foreground and wait until interrupted or closed
+    def foreground
       return if ENV['GUARD_ENV'] == 'test'
-
+      ::Guard::UI.debug 'Start interactor'
       _store_terminal_settings if _stty_exists?
 
-      unless @thread
-        ::Guard::UI.debug 'Start interactor'
+      if @no_interaction
+        begin
+          _block
+          return :stopped
+        rescue Interrupt
+          return :exit
+        ensure
+          _cleanup
+        end
+      else
+        @mutex.synchronize do
+          unless @thread
+            @thread = Thread.new { Pry.start }
+            @thread.join(0.5) # give pry a chance to start
+          end
+        end
+        _block
+        _cleanup
+        return @thread.nil? ? :stopped : :exit
+      end
+    end
 
-        @thread = Thread.new do
-          Pry.start
-          ::Guard.stop
+
+    # Remove interactor so other tasks can run in foreground
+    def background
+      if @no_interaction
+        Thread.main.wakeup
+      else
+        @mutex.synchronize do
+          unless @thread.nil?
+            @thread.tap do |thread|
+              thread.kill
+              # set to nil so we know we were killed
+              @thread = nil
+            end
+          end
         end
       end
     end
 
-    # Kill interactor thread if not current
-    #
-    def stop
-      return if !@thread || ENV['GUARD_ENV'] == 'test'
+    # This is called from signal handler, so avoid actually
+    # doing anything other than signaling threads
+    def handle_interrupt
+      return if ENV['GUARD_ENV'] == 'test'
 
-      unless Thread.current == @thread
-        ::Guard::UI.reset_line
-        ::Guard::UI.debug 'Stop interactor'
-        @thread.kill
-        @thread = nil
+      if @no_interaction
+        Thread.main.raise Interrupt
+      else
+        #TODO: does this actually do anything?
+        @thread.raise Interrupt
       end
-
-      _restore_terminal_settings if _stty_exists?
     end
 
     private
@@ -322,5 +352,20 @@ module Guard
       system("stty #{ @stty_save } 2>#{ DEV_NULL }") if @stty_save
     end
 
+    # Restore terminal settings after closing
+    def _cleanup
+      ::Guard::UI.reset_line
+      ::Guard::UI.debug 'Stop interactor'
+      _restore_terminal_settings if _stty_exists?
+    end
+
+    # Enter interactive mode
+    def _block
+      if @no_interaction
+        sleep
+      else
+        @thread.join
+      end
+    end
   end
 end

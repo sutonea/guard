@@ -2,13 +2,16 @@ require 'spec_helper'
 require 'guard/plugin'
 
 describe Guard::Commander do
+  before do
+    allow(::Guard).to receive(:_interactor_loop) { }
+  end
+
   describe '.start' do
     before do
       ::Guard.instance_variable_set('@watchdirs', [])
       allow(::Guard).to receive(:setup)
       allow(::Guard).to receive(:listener).and_return(double('listener', start: true))
       allow(::Guard).to receive(:runner).and_return(double('runner', run: true))
-      allow(::Guard).to receive(:within_preserved_state).and_yield
     end
 
     context 'Guard has not been setuped' do
@@ -46,7 +49,6 @@ describe Guard::Commander do
       allow(::Guard).to receive(:setup)
       allow(::Guard).to receive(:listener).and_return(double('listener', stop: true))
       allow(::Guard).to receive(:runner).and_return(double('runner', run: true))
-      allow(::Guard).to receive(:within_preserved_state).and_yield
     end
 
     context 'Guard has not been setuped' do
@@ -91,7 +93,7 @@ describe Guard::Commander do
 
     before do
       allow(::Guard).to receive(:runner) { runner }
-      allow(::Guard).to receive(:within_preserved_state).and_yield
+      allow(::Guard).to receive(:scope) { {} }
       allow(::Guard::UI).to receive(:info)
       allow(::Guard::UI).to receive(:clear)
     end
@@ -150,7 +152,6 @@ describe Guard::Commander do
 
     before do
       allow(::Guard).to receive(:runner) { runner }
-      allow(::Guard).to receive(:within_preserved_state).and_yield
       allow(::Guard::UI).to receive(:action_with_scopes)
       allow(::Guard::UI).to receive(:clear)
     end
@@ -181,43 +182,4 @@ describe Guard::Commander do
       end
     end
   end
-
-  describe '.within_preserved_state' do
-    subject { ::Guard.setup }
-    before do
-      allow(subject)
-        .to receive(:interactor)
-        .and_return(double('interactor').as_null_object)
-    end
-
-    it 'disallows running the block concurrently to avoid inconsistent states' do
-      expect(subject.lock).to receive(:synchronize)
-      subject.within_preserved_state(&Proc.new {})
-    end
-
-    it 'runs the passed block' do
-      @called = false
-      subject.within_preserved_state { @called = true }
-      expect(@called).to be_truthy
-    end
-
-    context '@running is true' do
-      it 'stops the interactor before running the block and starts it again when done' do
-        expect(subject.interactor).to receive(:stop)
-        expect(subject.interactor).to receive(:start)
-        subject.within_preserved_state(&Proc.new {})
-      end
-    end
-
-    context '@running is false' do
-      before { allow(::Guard).to receive(:running).and_return(false) }
-
-      it 'stops the interactor before running the block and do not starts it again when done' do
-        expect(subject.interactor).to receive(:stop)
-        expect(subject.interactor).to_not receive(:start)
-        subject.within_preserved_state(&Proc.new {})
-      end
-    end
-  end
-
 end

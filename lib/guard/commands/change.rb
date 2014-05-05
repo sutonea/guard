@@ -14,14 +14,12 @@ module Guard
         BANNER
 
         def process(*entries)
-          scopes, files = ::Guard::Interactor.convert_scope(entries)
+          _, files = ::Guard::Interactor.convert_scope(entries)
 
           if files.empty?
             output.puts 'Please specify a file.'
           else
-            ::Guard.within_preserved_state do
-              ::Guard.runner.run_on_changes(files, [], [])
-            end
+            ::Guard.async_queue_add(modified: files, added: [], removed: [])
           end
         end
 
