@@ -157,6 +157,10 @@ module Guard
       Thread.new { interactor.background }
     end
 
+    def pending_changes?
+      ! @queue.empty?
+    end
+
     private
 
     # Sets up various debug behaviors:
@@ -210,7 +214,7 @@ module Guard
     def _process_queue
       all_changes = {modified: [], added: [], removed: []}
 
-      while ! @queue.empty?
+      while pending_changes?
         @queue.pop.each do |key, value|
           all_changes[key] += value
         end
