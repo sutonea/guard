@@ -233,9 +233,6 @@ module Guard
         end
       end
 
-      if ::Guard::Watcher.match_guardfile?(modified)
-        evaluator.reevaluate_guardfile
-      end
 
       runner.run_on_changes(modified, added, removed)
     end
