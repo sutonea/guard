@@ -149,6 +149,13 @@ module Guard
     end
 
     # Asynchronously trigger changes
+    #
+    # Currently supported args:
+    #
+    #   old style hash: {modified: ['foo'], added: ['bar'], removed: []}
+    #
+    #   new style signals with args: [:guard_pause, :unpaused ]
+    #
     def async_queue_add(changes)
       @queue << changes
 
@@ -217,7 +224,7 @@ module Guard
 
       while pending_changes?
         item = @queue.pop
-        if item.is_a?(Symbol)
+        if item.first.is_a?(Symbol)
           all_actions << item
         else
           item.each do |key, value|
@@ -227,12 +234,17 @@ module Guard
       end
 
       #TODO: use respond_to? and call
-      all_actions.each do |action|
+      all_actions.each do |action_args|
+        action, args = action_args
         case action
         when :guard_pause
-          pause(:paused)
-        when :guard_unpause
-          pause(:unpaused)
+          pause args
+        when :guard_run_all
+          run_all args
+        when :guard_reload
+          reload args
+        when :guard_show
+          ::Guard::DslDescriber.new(::Guard.options).show
         else
           raise "Unknown action: #{action.inspect}"
         end
@@ -251,11 +263,11 @@ module Guard
     def _setup_signal_traps
       unless defined?(JRUBY_VERSION)
         if Signal.list.keys.include?('USR1')
-          Signal.trap('USR1') { async_queue_add(:guard_pause) }
+          Signal.trap('USR1') { async_queue_add([:guard_pause, :paused]) }
         end
 
         if Signal.list.keys.include?('USR2')
-          Signal.trap('USR2') { async_queue_add(:guard_unpause) }
+          Signal.trap('USR2') { async_queue_add([:guard_pause, :unpaused]) }
         end
 
         if Signal.list.keys.include?('INT')

@@ -15,10 +15,12 @@ describe 'Guard::Interactor::ALL' do
   end
 
   describe '#perform' do
+    let!(:guard) { ::Guard.setup }
     context 'without scope' do
       it 'runs the :run_all action' do
         expect(Guard).to receive(:run_all).with(groups: [], plugins: [])
         Pry.run_command 'all'
+        guard.send(:_process_queue)
       end
     end
 
@@ -26,6 +28,7 @@ describe 'Guard::Interactor::ALL' do
       it 'runs the :run_all action with the given scope' do
         expect(Guard).to receive(:run_all).with(groups: [foo_group], plugins: [])
         Pry.run_command 'all foo'
+        guard.send(:_process_queue)
       end
     end
 
@@ -33,6 +36,7 @@ describe 'Guard::Interactor::ALL' do
       it 'runs the :run_all action with the given scope' do
         expect(Guard).to receive(:run_all).with(plugins: [bar_guard], groups: [])
         Pry.run_command 'all bar'
+        guard.send(:_process_queue)
       end
     end
 
@@ -40,6 +44,7 @@ describe 'Guard::Interactor::ALL' do
       it 'does not run the action' do
         expect(Guard).to_not receive(:run_all)
         Pry.run_command 'all baz'
+        guard.send(:_process_queue)
       end
     end
   end

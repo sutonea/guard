@@ -20,7 +20,7 @@ module Guard
           scopes, rest = ::Guard::Interactor.convert_scope(entries)
 
           if rest.empty?
-            ::Guard.reload scopes
+            ::Guard.async_queue_add([:guard_reload, scopes])
           else
             output.puts "Unknown scope #{ rest.join(', ') }"
           end

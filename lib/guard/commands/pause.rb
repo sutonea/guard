@@ -17,7 +17,7 @@ module Guard
         BANNER
 
         def process
-          ::Guard.pause
+          ::Guard.async_queue_add([:guard_pause])
         end
       end
     end

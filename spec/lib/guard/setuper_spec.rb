@@ -197,7 +197,7 @@ describe Guard::Setuper do
     unless windows? || defined?(JRUBY_VERSION)
       context 'when receiving SIGUSR1' do
         it 'pauses Guard' do
-          expect(::Guard).to receive(:async_queue_add).with(:guard_pause)
+          expect(::Guard).to receive(:async_queue_add).with([:guard_pause, :paused])
           Process.kill :USR1, Process.pid
           sleep 1
         end
@@ -205,7 +205,7 @@ describe Guard::Setuper do
 
       context 'when receiving SIGUSR2' do
         it 'un-pause Guard' do
-          expect(Guard).to receive(:async_queue_add).with(:guard_unpause)
+          expect(Guard).to receive(:async_queue_add).with([:guard_pause, :unpaused])
           Process.kill :USR2, Process.pid
           sleep 1
         end

@@ -16,7 +16,7 @@ module Guard
         BANNER
 
         def process
-          ::Guard::DslDescriber.new(::Guard.options).show
+          ::Guard.async_queue_add([:guard_show])
         end
       end
     end

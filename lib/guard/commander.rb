@@ -95,10 +95,13 @@ module Guard
 
     # TODO: remove (left to avoid breaking too many specs)
     def _interactor_loop
-      while interactor.foreground != :exit
-        while pending_changes?
-          _process_queue
+      begin
+        while interactor.foreground != :exit
+          while pending_changes?
+            _process_queue
+          end
         end
+      rescue Interrupt
       end
       stop
     end

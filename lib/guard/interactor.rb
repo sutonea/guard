@@ -177,7 +177,11 @@ module Guard
         Thread.main.raise Interrupt
       else
         #TODO: does this actually do anything?
-        @thread.raise Interrupt
+        if @thread
+          @thread.raise Interrupt
+        else
+          raise Interrupt
+        end
       end
     end
 
