@@ -76,13 +76,20 @@ module Guard
 
     # Pause Guard listening to file changes.
     #
-    def pause
-      if listener.paused?
-        ::Guard::UI.info 'Un-paused files modification listening', reset: true
-        listener.unpause
-      else
-        ::Guard::UI.info 'Paused files modification listening', reset: true
-        listener.pause
+    def pause(expected=nil)
+      expected ||= :toggle
+      raise ArgumentError, "invalid mode: #{expected.inspect}" unless [:toggle, :paused, :unpaused].include? expected
+
+      current = listener.paused? ? :paused : :unpaused
+
+      if expected == :toggle
+        expected = current == :paused ? :unpaused : :paused
+      end
+
+      actions = { :unpaused => :unpause, :paused => :pause }
+      if expected != current
+        listener.send(actions[expected])
+        ::Guard::UI.info "File modification listening is now #{expected.upcase}", reset: true
       end
     end
 

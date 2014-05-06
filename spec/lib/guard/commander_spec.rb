@@ -182,4 +182,74 @@ describe Guard::Commander do
       end
     end
   end
+
+  describe '.pause' do
+    subject { ::Guard.setup }
+    let!(:listener) { double(:listener) }
+    before do
+      allow(subject).to receive(:listener) { listener }
+    end
+
+    context 'when unpaused' do
+
+      before do
+        allow(listener).to receive(:paused?) { false }
+      end
+
+      [:toggle, nil, :paused].each do |mode|
+        context "with #{mode.inspect}" do
+          it "pauses" do
+            expect(listener).to receive(:pause)
+            subject.pause(mode)
+          end
+        end
+      end
+
+      context 'with :unpaused' do
+        it "does nothing" do
+          expect(listener).to_not receive(:unpause)
+          expect(listener).to_not receive(:pause)
+          subject.pause(:unpaused)
+        end
+      end
+
+      context 'with invalid parameter' do
+        it "raises an ArgumentError" do
+          expect { subject.pause(:invalid) }.to raise_error(ArgumentError, 'invalid mode: :invalid')
+        end
+      end
+    end
+
+    context 'when already paused' do
+      let!(:listener) { ::Guard.listener }
+
+      before do
+        allow(::Guard.listener).to receive(:paused?) { true }
+      end
+
+      [:toggle, nil, :unpaused].each do |mode|
+        context "with #{mode.inspect}" do
+          it "unpauses" do
+            expect(listener).to receive(:unpause)
+            subject.pause(mode)
+          end
+        end
+      end
+
+      context 'with :paused' do
+        it "does nothing" do
+          expect(listener).to_not receive(:unpause)
+          expect(listener).to_not receive(:pause)
+          subject.pause(:paused)
+        end
+      end
+
+      context 'with invalid parameter' do
+        it "raises an ArgumentError" do
+          expect { subject.pause(:invalid) }.to raise_error(ArgumentError, 'invalid mode: :invalid')
+        end
+      end
+    end
+
+  end
 end

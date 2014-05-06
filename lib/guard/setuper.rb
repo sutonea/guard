@@ -213,10 +213,28 @@ module Guard
     # Process the change queue, running tasks within the main Guard thread
     def _process_queue
       all_changes = {modified: [], added: [], removed: []}
+      all_actions = []
 
       while pending_changes?
-        @queue.pop.each do |key, value|
-          all_changes[key] += value
+        item = @queue.pop
+        if item.is_a?(Symbol)
+          all_actions << item
+        else
+          item.each do |key, value|
+            all_changes[key] += value
+          end
+        end
+      end
+
+      #TODO: use respond_to? and call
+      all_actions.each do |action|
+        case action
+        when :guard_pause
+          pause(:paused)
+        when :guard_unpause
+          pause(:unpaused)
+        else
+          raise "Unknown action: #{action.inspect}"
         end
       end
 
@@ -233,11 +251,11 @@ module Guard
     def _setup_signal_traps
       unless defined?(JRUBY_VERSION)
         if Signal.list.keys.include?('USR1')
-          Signal.trap('USR1') { ::Guard.pause unless listener.paused? }
+          Signal.trap('USR1') { async_queue_add(:guard_pause) }
         end
 
         if Signal.list.keys.include?('USR2')
-          Signal.trap('USR2') { ::Guard.pause if listener.paused? }
+          Signal.trap('USR2') { async_queue_add(:guard_unpause) }
         end
 
         if Signal.list.keys.include?('INT')

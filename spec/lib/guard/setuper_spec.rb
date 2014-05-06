@@ -196,46 +196,18 @@ describe Guard::Setuper do
 
     unless windows? || defined?(JRUBY_VERSION)
       context 'when receiving SIGUSR1' do
-        context 'when Guard is running' do
-          before { expect(::Guard.listener).to receive(:paused?).and_return false }
-
-          it 'pauses Guard' do
-            expect(::Guard).to receive(:pause)
-            Process.kill :USR1, Process.pid
-            sleep 1
-          end
-        end
-
-        context 'when Guard is already paused' do
-          before { expect(::Guard.listener).to receive(:paused?).and_return true }
-
-          it 'does not pauses Guard' do
-            expect(::Guard).to_not receive(:pause)
-            Process.kill :USR1, Process.pid
-            sleep 1
-          end
+        it 'pauses Guard' do
+          expect(::Guard).to receive(:async_queue_add).with(:guard_pause)
+          Process.kill :USR1, Process.pid
+          sleep 1
         end
       end
 
       context 'when receiving SIGUSR2' do
-        context 'when Guard is paused' do
-          before { expect(Guard.listener).to receive(:paused?).and_return true }
-
-          it 'un-pause Guard' do
-            expect(Guard).to receive(:pause)
-            Process.kill :USR2, Process.pid
-            sleep 1
-          end
-        end
-
-        context 'when Guard is already running' do
-          before { expect(::Guard.listener).to receive(:paused?).and_return false }
-
-          it 'does not un-pause Guard' do
-            expect(::Guard).to_not receive(:pause)
-            Process.kill :USR2, Process.pid
-            sleep 1
-          end
+        it 'un-pause Guard' do
+          expect(Guard).to receive(:async_queue_add).with(:guard_unpause)
+          Process.kill :USR2, Process.pid
+          sleep 1
         end
       end
 
