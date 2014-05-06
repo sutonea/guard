@@ -220,27 +220,8 @@ module Guard
         end
       end
 
-      modified = all_changes[:modified].dup
-      added = all_changes[:added].dup
-      removed = all_changes[:removed].dup
-
-      # Convert to relative paths (respective to the watchdir it came from)
-      @watchdirs.each do |watchdir|
-        [modified, added, removed].each do |paths|
-          paths.map! do |path|
-            if path.start_with? watchdir
-              path.sub "#{watchdir}#{File::SEPARATOR}", ''
-            else
-              path
-            end
-          end
-        end
-      end
-
-
-      runner.run_on_changes(modified, added, removed)
+      runner.run_on_changes(all_changes[:modified], all_changes[:added], all_changes[:removed])
     end
-
 
     # Sets up traps to catch signals used to control Guard.
     #
@@ -292,6 +273,25 @@ module Guard
         ::Guard::UI.debug "Command execution: #{ command }"
         Kernel.send :original_backtick, command
       end
+    end
+
+    # Check if any of the changes are actually watched for
+    #
+    # NOTE: this is called from the listen thread - be careful to not
+    # modify any state
+    #
+    # TODO: move this to watcher class?
+    #
+    def _relevant_changes?(changes)
+      #TODO: make a Guardfile reloader "plugin" instead of a special case
+      return true if ::Guard::Watcher.match_guardfile?(changes[:modified])
+
+      #TODO: ignoring irrelevant files should be Listen's responsibility
+      all_files = changes.values.flatten(1)
+      runner.send(:_scoped_plugins) do |guard|
+        return true if ::Guard::Watcher.match_files?([guard], all_files)
+      end
+      false
     end
 
   end
