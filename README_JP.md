@@ -5,10 +5,13 @@ Guard
 
 <img src="http://cl.ly/image/1k3o1r2Z3a0J/guard-Icon.png" alt="Guard Icon" align="right" />
 Guard is a command line tool to easily handle events on file system modifications.
+Guard は、ファイルシステムの変更をハンドルするための、コマンドラインツールです。
 
 This document contains a lot of information, please take your time and read these instructions carefully. If you have
 any questions about the Guard usage or want to share some information with the Guard community, please go to one of
 the following places:
+このドキュメントには多くの情報が含まれますので、時間をかけて慎重に読んでください。
+Guardの使い方についてわからないことがあったり、情報をGuardコミュニティで共有したいなら、以下のサイトを訪問してください。
 
 * [Google+ community](https://plus.google.com/u/1/communities/110022199336250745477)
 * [Google group](http://groups.google.com/group/guard-dev)
@@ -17,8 +20,11 @@ the following places:
 
 Information on advanced topics like creating your own Guard plugin, programatic use of Guard, hooks and callbacks and
 more can be found in the [Guard wiki](https://github.com/guard/guard/wiki).
+より進んだ情報(Guardプラグインの作成、プログラマティックなGuardの使用、hooksやコールバック)は、
+[Guard wiki](https://github.com/guard/guard/wiki) 上で見つけることができます。
 
 Before you file an issue, make sure you have read the _[known issues](#issues)_ and _[file an issue](#file-an-issue)_ sections that contains some important information.
+議論用のスレッドを作成する前には、重要な情報が書かれている _[known issues](#issues)_ and _[file an issue](#file-an-issue)_ を読んでください。
 
 #### Features
 
