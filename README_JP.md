@@ -24,28 +24,38 @@ more can be found in the [Guard wiki](https://github.com/guard/guard/wiki).
 [Guard wiki](https://github.com/guard/guard/wiki) 上で見つけることができます。
 
 Before you file an issue, make sure you have read the _[known issues](#issues)_ and _[file an issue](#file-an-issue)_ sections that contains some important information.
-議論用のスレッドを作成する前には、重要な情報が書かれている _[known issues](#issues)_ and _[file an issue](#file-an-issue)_ を読んでください。
+議論用のスレッドを作成する前には、重要な情報が書かれている _[known issues](#issues)_ や _[file an issue](#file-an-issue)_ を読んでください。
 
 #### Features
+#### 特徴
 
 * File system changes handled by our awesome [Listen](https://github.com/guard/listen) gem.
+* ファイルシステムの変更は [Listen](https://github.com/guard/listen) によりハンドルされます。
 * Support for visual system notifications.
+* システムの画面への通知をサポートしています。
 * Huge eco-system with [more than 220](https://rubygems.org/search?query=guard-) Guard plugins.
+* 巨大なエコシステム。[more than 220](https://rubygems.org/search?query=guard-) Guard plugins.
 * Tested against Ruby 1.9.3, 2.0.0, 2.1.0, JRuby & Rubinius.
+* Ruby 1.9.3, 2.0.0, 2.1.0, JRuby & Rubinius でテストされています。
 
 #### Screencast
+#### スクリーンキャスト
 
 Two nice screencasts are available to help you get started:
+Guard を始めるにあたり、2つのスクリーンキャストがあなたの助けとなります。
 
 * [Guard](http://railscasts.com/episodes/264-guard) on RailsCast.
 * [Guard is Your Best Friend](http://net.tutsplus.com/tutorials/tools-and-tips/guard-is-your-best-friend) on Net Tuts+.
 
 Installation
+インストール
 ------------
 
 The simplest way to install Guard is to use [Bundler](http://gembundler.com/).
+Guard をインストールするもっともシンプルな方法は、[Bundler](http://gembundler.com/) を使うことです。
 
 Add Guard (and any other dependencies) to a `Gemfile` in your project’s root:
+あなたのプロジェクトのルートディレクトリの `Gemfile` に、Guard ( それと依存するもの ) を追加します。
 
 ```ruby
 group :development do
@@ -54,18 +64,21 @@ end
 ```
 
 then install it by running Bundler:
+その後、Bundler を実行してこれをインストールします。
 
 ```bash
 $ bundle
 ```
 
 Generate an empty `Guardfile` with:
+空の `Guardfile` の作成方法は次のとおりです:
 
 ```bash
 $ bundle exec guard init
 ```
 
 Run Guard through Bundler with:
+Guard をBundler経由で実行します。次のとおりです:
 
 ```bash
 $ bundle exec guard
